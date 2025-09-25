@@ -1,5 +1,5 @@
 import LoginPage from "./login/page";
-import Booking from "./Booking/page";
+import Booking from "../modules/booking/page"
 
 const isExist = true;
 
