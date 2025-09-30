@@ -4,12 +4,12 @@
 import poNumbers from '@/mock/dts_poNumber'
 import clientData from '@/mock/dts_cleint_data'
 
-/* React and Core */
 import React, {useState } from 'react'
 
 /* Compenents */
 import Dropdown from '@/components/Dropdown'
 import Table from '@/components/Table'
+import Input from '@/components/Input'
 
 /* Hooks and Utils */
 import { useDelayedVisibility } from '@/hooks/useDelayedVisibility'
@@ -21,7 +21,7 @@ const MapCanvas = dynamic(() => import('../../components/MapCanvas'), {
   ssr: false,
 })
 
-/* Logic PO */
+/* Logic Special - PO */
 const POSummaryTable: React.FC<{ poList: number[] }> = ({ poList }) => {
   const headers = ['PO Number', 'Max Value', 'Balance', 'Usage']
 
@@ -52,6 +52,14 @@ const Booking: React.FC = () => {
   const [selectedOrigin, setSelectedOrigin] = useState('')
   const [selectedDestination, setSelectedDestination] = useState('')
   const showDetails = useDelayedVisibility(!!selectedRouteDescription, 50)
+  const [pickupDate, setPickupDate] = useState('')
+  const [pickupTime, setPickupTime] = useState('')
+  const [deliveryDate, setDeliveryDate] = useState('')
+  const [deliveryTime, setDeliveryTime] = useState('')
+  const [selectedReturn, setSelectedReturn] = useState('')
+  const [returnDate, setReturnDate] = useState('')
+  const [returnTime, setReturnTime] = useState('')
+  const [showReturnLocation, setShowReturnLocation] = useState(false)
 
   const selectedProject = clientData.customerProjects.find(
     (project) => project.name === selectedProjectName
@@ -105,34 +113,121 @@ const Booking: React.FC = () => {
             showDetails ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
           }`}
         >
-          <h2 className="mt-6 mb-2 text-lg font-semibold text-gray-700">PO Summary</h2>
-          <POSummaryTable poList={selectedRoute.poNumbers} />
+          <div hidden>
+            <h2 className="mt-6 mb-2 text-lg font-semibold text-gray-700">PO Summary</h2>
+            <POSummaryTable poList={selectedRoute.poNumbers} />
+            <h2 className="mb-1 text-sm font-medium text-gray-600">PO Number</h2>
+            <Dropdown
+              options={selectedRoute.poNumbers.map((po) => po.toString())}
+              value={selectedPoNumber}
+              onChange={(e) => setSelectedPoNumber(e.target.value)}
+            />
+          </div>
+          
+          {/* Return Location (สมมติว่าใส่ไว้ก่อน ยังไม่ทำ logic) */}
+          <div className="mt-6 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="return-toggle"
+              checked={showReturnLocation}
+              onChange={(e) => setShowReturnLocation(e.target.checked)}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="return-toggle" className="text-sm text-gray-700">
+              Return trip
+            </label>
+          </div>
 
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <h2 className="mb-1 text-sm font-medium text-gray-600">PO Number</h2>
+          <div className="mt-6 flex flex-wrap gap-6">
+            {/* Pickup Location */}
+              <div className="flex-1 min-w-[300px] rounded-xl shadow-lg backdrop-blur-md bg-white/30 border border-white/20 px-4 py-6">
+
+                <h2 className="mb-2 text-base font-semibold text-gray-800">Pickup Location</h2>
+                <Dropdown
+                  options={selectedRoute.origin_info.map((p) => p.origin)}
+                  value={selectedOrigin}
+                  onChange={(e) => setSelectedOrigin(e.target.value)}
+                />
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <h2 className="mb-1 text-xs font-medium text-gray-600">Pickup Date</h2>
+                    <Input
+                      type="date"
+                      value={pickupDate}
+                      onChange={(e) => setPickupDate(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <h2 className="mb-1 text-xs font-medium text-gray-600">Pickup Time</h2>
+                    <Input
+                      type="time"
+                      value={pickupTime}
+                      onChange={(e) => setPickupTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+             </div>
+
+            {/* Delivery Location */}
+            <div className="flex-1 min-w-[300px] rounded-xl shadow-lg backdrop-blur-md bg-white/30 border border-white/20 px-4 py-6">
+
+              <h2 className="mb-2 text-base font-semibold text-gray-800">Delivery Location</h2>
               <Dropdown
-                options={selectedRoute.poNumbers.map((po) => po.toString())}
-                value={selectedPoNumber}
-                onChange={(e) => setSelectedPoNumber(e.target.value)}
-              />
-            </div>
-            <div>
-              <h2 className="mb-1 text-sm font-medium text-gray-600">Origin</h2>
-              <Dropdown
-                options={selectedRoute.origin_info.map(p => p.origin)}
-                value={selectedOrigin}
-                onChange={(e) => setSelectedOrigin(e.target.value)}
-              />
-            </div>
-            <div>
-              <h2 className="mb-1 text-sm font-medium text-gray-600">Destination</h2>
-              <Dropdown
-                options={selectedRoute.destination_info.map(p => p.destination)}
+                options={selectedRoute.destination_info.map((p) => p.destination)}
                 value={selectedDestination}
                 onChange={(e) => setSelectedDestination(e.target.value)}
               />
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <h2 className="mb-1 text-xs font-medium text-gray-600">Delivery Date</h2>
+                  <Input
+                    type="date"
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <h2 className="mb-1 text-xs font-medium text-gray-600">Delivery Time</h2>
+                  <Input
+                    type="time"
+                    value={deliveryTime}
+                    onChange={(e) => setDeliveryTime(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
+
+            {showReturnLocation && (
+              <div className="flex-1 min-w-[300px] rounded-xl shadow-lg backdrop-blur-md bg-white/30 border border-white/20 px-4 py-6">
+
+                <h2 className="mb-2 text-base font-semibold text-gray-800">Return Location</h2>
+
+                <Dropdown
+                  options={selectedRoute.origin_info.map((p) => p.origin)}
+                  value={selectedReturn}
+                  onChange={(e) => setSelectedReturn(e.target.value)}
+                />
+
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <h2 className="mb-1 text-xs font-medium text-gray-600">Return Date</h2>
+                    <Input
+                      type="date"
+                      value={returnDate}
+                      onChange={(e) => setReturnDate(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <h2 className="mb-1 text-xs font-medium text-gray-600">Return Time</h2>
+                    <Input
+                      type="time"
+                      value={returnTime}
+                      onChange={(e) => setReturnTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {selectedOrigin && selectedDestination && (
@@ -173,12 +268,13 @@ const Booking: React.FC = () => {
                 <h2 className="mb-2 text-sm font-medium text-gray-600">Map Preview</h2>
                 <div className="overflow-hidden rounded-md border border-gray-200 shadow-sm">
                   <MapCanvas
-                    origin={originData?.originCoordinates}
-                    destination={destinationData?.destinationCoordinates}
+                    origin={originData.originCoordinates}
+                    destination={destinationData.destinationCoordinates}
+                    returnToOrigin={showReturnLocation}
                   />
                 </div>
               </div>
-            )}
+          )}
         </div>
       )}
     </div>
